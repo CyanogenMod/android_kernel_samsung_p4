@@ -172,6 +172,7 @@ static int write_bootloader_message(char *cmd, int mode)
 #ifdef CONFIG_KERNEL_DEBUG_SEC
 		reboot_mode = REBOOT_MODE_RECOVERY;
 		kernel_sec_set_debug_level(KERNEL_SEC_DEBUG_LEVEL_LOW);
+		kernel_sec_clear_upload_magic_number();
 #endif
 	} else if (mode == REBOOT_MODE_FASTBOOT)
 		strcpy(bootmsg.command, "boot-fastboot");
