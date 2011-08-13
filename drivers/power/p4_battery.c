@@ -870,6 +870,7 @@ static struct device_attribute p3_battery_attrs[] = {
 #ifdef CONFIG_MACH_SAMSUNG_P5
 	SEC_BATTERY_ATTR(batt_temp_cels),
 #endif
+	SEC_BATTERY_ATTR(batt_current),
 	SEC_BATTERY_ATTR(force_usb_charging),
 	SEC_BATTERY_ATTR(batt_charging_source),
 	SEC_BATTERY_ATTR(fg_soc),
@@ -892,6 +893,7 @@ enum {
 #ifdef CONFIG_MACH_SAMSUNG_P5
 	BATT_TEMP_CELS,
 #endif
+	BATT_CURRENT,
 	FORCE_USB_CHARGING,
 	BATT_CHARGING_SOURCE,
 	BATT_FG_SOC,
@@ -952,6 +954,10 @@ static ssize_t p3_bat_show_property(struct device *dev,
 			temp);
 			break;
 #endif
+	case BATT_CURRENT:
+		i += scnprintf(buf + i, PAGE_SIZE - i, "%d\n",
+		get_fuelgauge_value(FG_CURRENT_AVG));
+		break;
 	case FORCE_USB_CHARGING:
 		i += scnprintf(buf + i, PAGE_SIZE - i, "%d\n",
 		test_batterydata->info.force_usb_charging);
