@@ -1,0 +1,13 @@
+menuconfig SENSORS
+	bool "Sensors Support"
+	help
+	  Say Y to enable Sensors support.  This allows control of supported
+	  Sensors.
+
+if SENSORS
+
+source "drivers/sensors/proxlight/Kconfig"
+source "drivers/sensors/compass/Kconfig"
+source "drivers/sensors/mpu3050_v333/Kconfig"
+
+endif # SENSORS
