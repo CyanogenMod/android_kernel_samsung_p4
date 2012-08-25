@@ -103,19 +103,6 @@ err_sclk:
 	return err;
 }
 
-void fsl_udc_lock_sclk(uint rate)
-{
-	printk(KERN_DEBUG "sclk rate lock %d\n", rate);
-	clk_set_rate(sclk_clk, rate);
-	clk_enable(sclk_clk);
-}
-
-void fsl_udc_unlock_sclk()
-{
-	printk(KERN_DEBUG "sclk rate unlock 80Mhz\n");
-	clk_disable(sclk_clk);
-}
-
 void fsl_udc_clk_finalize(struct platform_device *pdev)
 {
 }

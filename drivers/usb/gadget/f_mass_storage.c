@@ -406,11 +406,6 @@ struct fsg_common {
 	 */
 	char inquiry_string[8 + 16 + 4 + 1];
 
-#ifdef CONFIG_USB_ANDROID_SAMSUNG_COMPOSITE
-	char vendor_string[8 + 1];
-	char product_string[16 + 1];
-#endif
-
 	struct kref		ref;
 };
 

@@ -118,12 +118,6 @@ struct usb_function {
 
 	struct usb_configuration	*config;
 
-#ifdef CONFIG_USB_ANDROID_SAMSUNG_COMPOSITE
-	int	(*set_intf_num)(struct usb_function *f,
-			int intf_num, int index_num);
-	int	(*set_config_desc)(int conf_num);
-#endif
-
 	/* REVISIT:  bind() functions can be marked __init, which
 	 * makes trouble for section mismatch analysis.  See if
 	 * we can't restructure things to avoid mismatching.
@@ -371,13 +365,6 @@ struct usb_composite_dev {
 
 	/* protects deactivations and delayed_status counts*/
 	spinlock_t			lock;
-
-#ifdef CONFIG_USB_ANDROID_SAMSUNG_COMPOSITE
-	/* used by enable_store function of android.c
-	 * to avoid signalling switch changes
-	 */
-	bool                            mute_switch;
-#endif
 };
 
 extern int usb_string_id(struct usb_composite_dev *c);
@@ -385,12 +372,6 @@ extern int usb_string_ids_tab(struct usb_composite_dev *c,
 			      struct usb_string *str);
 extern int usb_string_ids_n(struct usb_composite_dev *c, unsigned n);
 
-#ifdef CONFIG_TEGRA_CPU_FREQ_LOCK
-extern void tegra_cpu_lock_speed(int min_rate, int timeout_ms);
-extern void tegra_cpu_unlock_speed(void);
-#endif /* CONFIG_TEGRA_CPU_FREQ_LOCK */
-extern void fsl_udc_lock_sclk(uint rate);
-extern void fsl_udc_unlock_sclk(void);
 
 /* messaging utils */
 #define DBG(d, fmt, args...) \
