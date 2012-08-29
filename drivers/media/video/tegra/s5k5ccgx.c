@@ -35,6 +35,7 @@
 
 #include <media/s5k5ccgx.h>
 
+static int lastTorchState = 0;
 
 /*#define CONFIG_LOAD_FILE*/	/*For tunning binary*/
 #define S5K5CCGX_BURST_WRITE_LIST(A)	s5k5ccgx_sensor_burst_write_list(A, (sizeof(A) / sizeof(A[0])), #A);
@@ -2918,13 +2919,16 @@ static ssize_t cameraflash_file_cmd_store(struct device *dev,
 
 	sscanf(buf, "%d", &value);
 
-	if (value == 0) {
-		printk(KERN_INFO "[Factory flash]OFF\n");
-		state->pdata->torch_onoff(0);
-	} else {
-		printk(KERN_INFO "[Factory flash]ON\n");
-		state->pdata->torch_onoff(1);
+	if (value != lastTorchState) {
+		lastTorchState = value;
+		if (value == 0)
+			printk(KERN_INFO "[Factory flash]OFF\n");
+		else
+			printk(KERN_INFO "[Factory flash]ON\n");
+		state->pdata->torch_onoff(value);
 	}
+	else
+		printk(KERN_INFO "[Factory flash]UNCHANGED\n");
 
 	return size;
 }
