@@ -320,7 +320,13 @@ int __init p3_regulator_init(void)
 
 	i2c_register_board_info(4, p3_regulators, 1);
 
-//	regulator_has_full_constraints();
+        /* invoke this regulator call so that the core regulator code
+         * will automatically disable any regulators it finds that are
+         * on but not referenced in late init.  that allows drivers to
+         * control the regulators dynamically after cleaning up the
+         * boot state of the regulators.
+         */
+	regulator_has_full_constraints();
 
 #ifdef CONFIG_SAMSUNG_LPM_MODE
 	if (charging_mode_from_boot) {
