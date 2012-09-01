@@ -797,7 +797,7 @@ static struct device_attribute p3_battery_attrs[] = {
 	SEC_BATTERY_ATTR(batt_temp_check),
 	SEC_BATTERY_ATTR(batt_full_check),
 #ifdef CONFIG_SAMSUNG_LPM_MODE
-	SEC_BATTERY_ATTR(batt_lp_charging),
+	SEC_BATTERY_ATTR(charging_mode_booting),
 	SEC_BATTERY_ATTR(voltage_now),
 #endif
 	SEC_BATTERY_ATTR(fg_capacity),
