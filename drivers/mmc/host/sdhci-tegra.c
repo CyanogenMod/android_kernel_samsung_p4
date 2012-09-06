@@ -1081,7 +1081,6 @@ static int __devinit sdhci_tegra_probe(struct platform_device *pdev)
 	host->mmc->pm_caps |= plat->pm_caps;
 	host->mmc->pm_flags |= plat->pm_flags;
 
-	host->mmc->caps |= MMC_CAP_ERASE;
 	host->mmc->caps |= MMC_CAP_DISABLE;
 	/* enable 1/8V DDR capable */
 	host->mmc->caps |= MMC_CAP_1_8V_DDR;
