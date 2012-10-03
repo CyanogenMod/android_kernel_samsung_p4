@@ -1029,7 +1029,7 @@ static struct p3_battery_platform_data p3_battery_platform = {
 	.init_charger_gpio = p3_bat_gpio_init,
 	.inform_charger_connection = p3_inform_charger_connection,
 
-#ifdef CONFIG_TARGET_LOCALE_KOR
+#if defined(CONFIG_TARGET_LOCALE_KOR)
 	.temp_high_threshold = 60000,
 	/* 546 + 32 (dT) ->600 by kim2054's request*/
 	.temp_high_recovery = 42600,	/* 426 */
@@ -1038,7 +1038,7 @@ static struct p3_battery_platform_data p3_battery_platform = {
 	.charge_duration = 10*60*60,	/* 10 hour */
 	.recharge_duration = 2*60*60,	/* 2 hour */
 	.recharge_voltage = 4150,	/*4.15V */
-#elif CONFIG_MACH_SAMSUNG_P4TMO
+#elif defined(CONFIG_MACH_SAMSUNG_P4TMO)
 	.temp_high_threshold = 50000,	/* 50c */
 	.temp_high_recovery = 45000,	/* 45c */
 	.temp_low_recovery = 2000,		/* 2c */
