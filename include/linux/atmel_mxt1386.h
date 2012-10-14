@@ -11,8 +11,14 @@
  *  for more details.
  *
  */
-#include <linux/earlysuspend.h>
+
+#ifndef _LINUX_MXT1386_H
+#define _LINUX_MXT1386_H
 #include <linux/wakelock.h>
+
+#ifdef CONFIG_HAS_EARLYSUSPEND
+#include <linux/earlysuspend.h>
+#endif
 
 /*Avoid Touch lockup due to wrong auto calibratoin*/
 /*Loose the calibration threshold to recalibrate easily at anti-touch
@@ -20,15 +26,19 @@
  * and tighten the calibration threshold to recalibrate at least at idle time
  * to avoid calibration repetition problem
  */
-
 #define MXT_CALIBRATE_WORKAROUND
+
+/*For Performance*/
 #define MXT_FACTORY_TEST
-#define ENABLE_NOISE_TEST_MODE
+
+/*Normal Feature*/
+#define MXT_SLEEP_POWEROFF
 #define MXT_ERROR_WORKAROUND
 
 #define MXT_I2C_APP_ADDR   0x4c
 #define MXT_I2C_BOOTLOADER_ADDR 0x26
 
+/*botton_right, botton_left, center, top_right, top_left*/
 #define MXT1386_MAX_CHANNEL	1386
 #define MXT1386_PAGE_SIZE		64
 #define MXT1386_PAGE_SIZE_SLAVE		8
@@ -461,9 +471,7 @@
 #define TSP_STATE_PRESS		1
 #define TSP_STATE_MOVE		2
 
-#ifdef MXT_FACTORY_TEST
 extern struct class *sec_class;
-#endif
 
 /* Device Info descriptor */
 /* Parsed from maXTouch "Id information" inside device */
@@ -748,7 +756,7 @@ struct mxt_data {
 	struct mxt_object *object_table;
 	struct wake_lock wakelock;
 	struct mxt_callbacks callbacks;
-	struct semaphore  msg_sem;
+	struct mutex mutex;
 #ifdef MXT_CALIBRATE_WORKAROUND
 	struct delayed_work calibrate_dwork;
 #endif
@@ -758,7 +766,6 @@ struct mxt_data {
 	struct multi_touch_info mtouch_info[MXT_MAX_NUM_TOUCHES];
 	bool new_msgs;
 	bool fherr_cnt_no_ta_calready;
-	bool ta_work_clear;
 	char phys_name[32];
 	int irq;
 	int valid_irq_counter;
@@ -805,7 +812,6 @@ enum tsp_ta_settings {
 };
 
 #define SET_BIT(nr, val) (nr |= (0x1 << val))
-#define CHECH_BIT(nr, val) (nr & (0x1 << val))
 
 /* Returns the start address of object in mXT memory. */
 #define	MXT_BASE_ADDR(object_type) \
@@ -841,4 +847,6 @@ u8 mxt_valid_interrupt(void);
 #endif
 
 void	mxt_hw_reset(void);
+
+#endif	/* _LINUX_MXT1386_H */
 
