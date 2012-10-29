@@ -247,6 +247,24 @@ void hpd_force_low(void)
 }
 #endif
 
+#ifdef CONFIG_SEC_KEYBOARD_DOCK
+extern int check_keyboard_dock(bool);
+#ifdef CONFIG_MACH_SAMSUNG_P4LTE
+struct acc_con_info *g_acc;
+void send_disconnect_uevent(void)
+{
+        if (NULL == g_acc)
+                return ;
+
+        if (DOCK_KEYBOARD == g_acc->current_dock) {
+                switch_set_state(&g_acc->dock_switch, UEVENT_DOCK_NONE);
+                acc_dock_check(g_acc, false);
+        }
+}
+EXPORT_SYMBOL(send_disconnect_uevent);
+#endif  /* CONFIG_MACH_SAMSUNG_P4LTE */
+#endif
+
 irqreturn_t acc_con_interrupt(int irq, void *ptr)
 {
 	struct acc_con_info *acc = ptr;
@@ -265,10 +283,12 @@ irqreturn_t acc_con_interrupt(int irq, void *ptr)
 
 		ACC_CONDEV_DBG("[30PIN] dock station detached!!!");
 
+#if defined(CONFIG_SEC_KEYBOARD_DOCK) && defined(CONFIG_MACH_SAMSUNG_P4LTE)
+                if (DOCK_KEYBOARD != acc->current_dock)
+#endif
 		switch_set_state(&acc->dock_switch, UEVENT_DOCK_NONE);
 #ifdef CONFIG_SEC_KEYBOARD_DOCK
-		if (acc->pdata->check_keyboard)
-			acc->pdata->check_keyboard(false);
+		check_keyboard_dock(false);
 #endif
 #ifndef CONFIG_MACH_SAMSUNG_P3
 #ifdef CONFIG_MHL_SII9234
@@ -284,6 +304,9 @@ irqreturn_t acc_con_interrupt(int irq, void *ptr)
 #endif
 #endif
 		/*TVout_LDO_ctrl(false); */
+#if defined(CONFIG_SEC_KEYBOARD_DOCK) && defined(CONFIG_MACH_SAMSUNG_P4LTE)
+                if (DOCK_KEYBOARD != acc->current_dock)
+#endif
 		acc_dock_check(acc, false);
 
 	} else if (0 == cur_state) {
@@ -291,13 +314,16 @@ irqreturn_t acc_con_interrupt(int irq, void *ptr)
 			IRQF_TRIGGER_HIGH | IRQF_ONESHOT);
 
 #ifdef CONFIG_SEC_KEYBOARD_DOCK
-		if (acc->pdata->check_keyboard &&
-			acc->pdata->check_keyboard(true)) {
-			acc->current_dock = DOCK_KEYBOARD;
-			ACC_CONDEV_DBG("[30PIN] keyboard dock is attached");
-			switch_set_state(&acc->dock_switch,
-				UEVENT_DOCK_KEYBOARD);
-		} else
+                if (check_keyboard_dock(true)) {
+#if defined(CONFIG_SEC_KEYBOARD_DOCK) && defined(CONFIG_MACH_SAMSUNG_P4LTE)
+                        if (DOCK_KEYBOARD != acc->current_dock)
+#endif
+                        {
+                                acc->current_dock = DOCK_KEYBOARD;
+                                ACC_CONDEV_DBG("[30PIN] keyboard dock station attached!!!");
+                                switch_set_state(&acc->dock_switch, UEVENT_DOCK_KEYBOARD);
+                        }
+                } else
 #endif
 		{
 			ACC_CONDEV_DBG("[30PIN] desktop dock station attached!!!");
@@ -641,6 +667,10 @@ static int acc_con_probe(struct platform_device *pdev)
 
 	if (device_create_file(acc->acc_dev, &dev_attr_MHD_file) < 0)
 		printk("Failed to create device file(%s)!\n", dev_attr_MHD_file.attr.name);
+
+#if defined(CONFIG_SEC_KEYBOARD_DOCK) && defined(CONFIG_MACH_SAMSUNG_P4LTE)
+        g_acc = acc;
+#endif
 
 	return 0;
 

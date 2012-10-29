@@ -183,18 +183,22 @@ static ssize_t uart_sel_show(struct device *dev, struct device_attribute *attr, 
 }
 #endif
 
+#if defined(CONFIG_SEC_KEYBOARD_DOCK)
+extern bool g_keyboard;
+#endif
+
 static ssize_t uart_sel_store(struct device *dev, struct device_attribute *attr,const char *buf, size_t size)
 {
 	static int first_modem_set_uart = 1;
 
 	//wake_lock(&sec_misc_wake_lock);
 
-
-
-
-
-
-
+#if defined(CONFIG_SEC_KEYBOARD_DOCK)
+        if (g_keyboard) {
+                pr_err("%s - the keyboard is connected.\n", __func__);
+                return size;
+        }
+#endif
 
 	if((0 == strncmp(buf,"PDA", 3)) || (0 == strncmp(buf, "pda", 3)))
 	{

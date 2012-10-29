@@ -88,6 +88,11 @@
 #ifdef CONFIG_KERNEL_DEBUG_SEC
 #include <linux/kernel_sec_common.h>
 #endif
+
+#if defined(CONFIG_SEC_KEYBOARD_DOCK)
+#include <linux/sec_keyboard_struct.h>
+#endif
+
 #if defined(CONFIG_TDMB) || defined(CONFIG_TDMB_MODULE)
 #include <mach/tdmb_pdata.h>
 #endif
@@ -1033,49 +1038,84 @@ static struct platform_device p3_battery_device = {
 	},
 };
 #ifdef CONFIG_SEC_KEYBOARD_DOCK
-static struct sec_keyboard_callbacks *keyboard_callbacks;
-static int check_sec_keyboard_dock(bool attached)
+#if 0
+struct uart_platform_data {
+        void(*send_to_keyboard)(unsigned int val);
+};
+
+struct kbd_callbacks {
+        void (*get_data)(struct kbd_callbacks *, unsigned int val);
+#if 0
+        int (*check_keyboard_dock)(struct kbd_callbacks *, int val);
+#endif
+};
+
+static struct kbd_callbacks sec_kdb_cb;
+
+static void uart_to_keyboard(unsigned int val)
 {
-	if (keyboard_callbacks && keyboard_callbacks->check_keyboard_dock)
-		return keyboard_callbacks->
-			check_keyboard_dock(keyboard_callbacks, attached);
-	return 0;
+        if (sec_kdb_cb && sec_kdb_cb->get_data)
+                sec_kdb_cb->get_data(sec_kdb_cb, val);
 }
 
-static void check_uart_path(bool en)
+static int check_keyboard(struct kbd_callbacks *, int val)
 {
-	int gpio_uart_sel;
-	gpio_uart_sel = GPIO_UART_SEL;
-
-	if (en)
-		gpio_direction_output(gpio_uart_sel, 1);
-	else
-		gpio_direction_output(gpio_uart_sel, 0);
-
-	printk(KERN_DEBUG "[Keyboard] uart_sel : %d\n",
-		gpio_get_value(gpio_uart_sel));
+        if (sec_kdb_cb && sec_kdb_cb->check_keyboard_dock)
+                return sec_kdb_cb->check_keyboard_dock(sec_kdb_cb, val);
+        return 0;
 }
 
-static void sec_keyboard_register_cb(struct sec_keyboard_callbacks *cb)
+static void sec_keyboard_register_callbacks(struct kbd_callbacks *cb)
 {
-	keyboard_callbacks = cb;
+        sec_kdb_cb = cb;
 }
 
-static struct sec_keyboard_platform_data kbd_pdata = {
-	.accessory_irq_gpio = GPIO_ACCESSORY_INT,
-	.acc_power = tegra_acc_power,
-	.check_uart_path = check_uart_path,
-	.register_cb = sec_keyboard_register_cb,
-	.wakeup_key = NULL,
+static struct dock_keyboard_platform_data kbd_pdata {
+        .enable= ,
+        .disable= ,
+        .register_cb =sec_keyboard_register_callbacks,
 };
 
 static struct platform_device sec_keyboard = {
-	.name	= "sec_keyboard",
-	.id	= -1,
-	.dev = {
-		.platform_data = &kbd_pdata,
-	}
+        .name   = "sec_keyboard",
+        .id     = -1,
+        .dev = {
+                .platform_data = &kbd_pdata,
+        }
 };
+
+static struct uart_platform_data uart_pdata {
+        .send_to_keyboard =uart_to_keyboard,
+};
+
+#else
+static int dock_wakeup(void)
+{
+        unsigned long status =
+                readl(IO_ADDRESS(TEGRA_PMC_BASE) + PMC_WAKE_STATUS);
+
+        if (status & TEGRA_WAKE_GPIO_PI5) {
+                writel(TEGRA_WAKE_GPIO_PI5,
+                        IO_ADDRESS(TEGRA_PMC_BASE) + PMC_WAKE_STATUS);
+        }
+
+        return status & TEGRA_WAKE_GPIO_PI5 ? KEY_WAKEUP : KEY_RESERVED;
+}
+
+static struct dock_keyboard_platform_data kbd_pdata = {
+        .acc_power = tegra_acc_power,
+        .wakeup_key = dock_wakeup,
+        .accessory_irq_gpio = GPIO_ACCESSORY_INT,
+};
+
+static struct platform_device sec_keyboard = {
+        .name   = "sec_keyboard",
+        .id     = -1,
+        .dev = {
+                .platform_data = &kbd_pdata,
+        }
+};
+#endif
 #endif
 
 #ifdef CONFIG_30PIN_CONN
@@ -1083,9 +1123,6 @@ struct acc_con_platform_data acc_con_pdata = {
 	.otg_en = tegra_otg_en,
 	.acc_power = tegra_acc_power,
 	.usb_ldo_en = tegra_usb_ldo_en,
-#ifdef CONFIG_SEC_KEYBOARD_DOCK
-	.check_keyboard = check_sec_keyboard_dock,
-#endif
 	.accessory_irq_gpio = GPIO_ACCESSORY_INT,
 	.dock_irq_gpio = GPIO_DOCK_INT,
 	.mhl_irq_gpio = GPIO_MHL_INT,
