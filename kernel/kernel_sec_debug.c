@@ -182,7 +182,7 @@ EXPORT_SYMBOL(kernel_sec_set_upload_magic_number);
 #if defined CONFIG_KERNEL_DEBUG_SEC && defined CONFIG_MACH_SAMSUNG_P3
 void kernel_sec_get_debug_level_from_boot(void)
 {
-	debuglevel = KERNEL_SEC_DEBUG_LEVEL_MID;
+	debuglevel = KERNEL_SEC_DEBUG_LEVEL_LOW;
 }
 #endif
 
@@ -655,7 +655,7 @@ int kernel_sec_get_debug_level(void)
 			|| debuglevel == KERNEL_SEC_DEBUG_LEVEL_MID 
 			|| debuglevel == KERNEL_SEC_DEBUG_LEVEL_HIGH)) {
 #if defined CONFIG_KERNEL_DEBUG_SEC && defined CONFIG_MACH_SAMSUNG_P3
-		debuglevel = KERNEL_SEC_DEBUG_LEVEL_MID;
+		debuglevel = KERNEL_SEC_DEBUG_LEVEL_LOW;
 #else
 		/*In case of invalid debug level, default (debug level low)*/
 		debuglevel = KERNEL_SEC_DEBUG_LEVEL_LOW;
