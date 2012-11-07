@@ -50,6 +50,7 @@
 
 #if defined(CONFIG_SEC_KEYBOARD_DOCK)
 #include <linux/irq.h>
+#include "../../../kernel/irq/internals.h"
 static bool g_uart_ready = false;
 static struct uart_8250_port *cons_uart;
 bool g_keyboard = false;
@@ -2408,7 +2409,7 @@ void check_uart_state(void)
         struct irq_desc *desc = irq_to_desc(cons_uart->port.irq);
 
         if (g_uart_ready) {
-                if (desc->status_use_accessors & (IRQD_IRQ_DISABLED)) {
+                if (desc->status_use_accessors & (IRQD_IRQ_DISABLED) || desc->istate & (IRQS_SPURIOUS_DISABLED)) {
                         serial8250_shutdown(&cons_uart->port);
                         serial8250_startup(&cons_uart->port);
                 }
