@@ -725,9 +725,7 @@ struct rcu_synchronize {
 	struct completion completion;
 };
 
-#if !defined(CONFIG_JRCU)
 extern void wakeme_after_rcu(struct rcu_head  *head);
-#endif
 
 #ifdef CONFIG_PREEMPT_RCU
 

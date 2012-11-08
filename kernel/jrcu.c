@@ -233,6 +233,11 @@ void rcu_note_might_resched(void)
 }
 EXPORT_SYMBOL(rcu_note_might_resched);
 
+struct rcu_synchronize {
+	struct rcu_head head;
+	struct completion completion;
+};
+
 static void wakeme_after_rcu(struct rcu_head  *head)
 {
 	struct rcu_synchronize *rcu;
