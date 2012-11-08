@@ -46,9 +46,6 @@
 #include <linux/module.h>
 #include <linux/hardirq.h>
 
-#define CREATE_TRACE_POINTS
-#include <trace/events/rcu.h>
-
 #include "rcu.h"
 
 #ifdef CONFIG_DEBUG_LOCK_ALLOC
