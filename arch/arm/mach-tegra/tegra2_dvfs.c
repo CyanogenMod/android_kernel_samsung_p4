@@ -51,18 +51,14 @@ static const int cpu_millivolts[MAX_DVFS_FREQS] =
 static const int cpu_speedo_nominal_millivolts[] =
 /* spedo_id  0,    1,    2 */
 #if defined(CONFIG_TEGRA_OVERCLOCK)
-	{ 1100, 1250, 1125 };
+	{ 1225, 1150, 1250 };
 #else
 	{ 1100, 1025, 1125 };
 #endif
 
 static const int core_speedo_nominal_millivolts[] =
 /* spedo_id  0,    1,    2 */
-#if defined(CONFIG_TEGRA_OVERCLOCK)
-	{ 1225, 1275, 1300 };
-#else
 	{ 1225, 1225, 1300 };
-#endif
 
 #define KHZ 1000
 #define MHZ 1000000
