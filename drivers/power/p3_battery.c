@@ -645,7 +645,13 @@ static int p3_bat_get_charging_status(struct battery_data *battery)
 	switch (battery->info.charging_source) {
 	case CHARGER_BATTERY:
 	case CHARGER_USB:
-		return POWER_SUPPLY_STATUS_NOT_CHARGING;
+		if (battery->current_cable_status != CHARGER_BATTERY) {
+			if (battery->info.batt_is_full || battery->info.level == 100)
+				return POWER_SUPPLY_STATUS_FULL;
+			else if(!battery->info.batt_is_full || battery->info.level != 100)
+				return POWER_SUPPLY_STATUS_CHARGING;
+		} else
+			return POWER_SUPPLY_STATUS_DISCHARGING;
 	case CHARGER_AC:
 		if (battery->info.batt_is_full)
 			return POWER_SUPPLY_STATUS_FULL;
@@ -662,13 +668,7 @@ static int p3_bat_get_charging_status(struct battery_data *battery)
 	switch (battery->info.charging_source) {
 	case CHARGER_BATTERY:
 	case CHARGER_USB:
-		if (battery->current_cable_status != CHARGER_BATTERY) {
-			if (battery->info.batt_is_full || battery->info.level == 100)
-				return POWER_SUPPLY_STATUS_FULL;
-			else if(!battery->info.batt_is_full || battery->info.level != 100)
-				return POWER_SUPPLY_STATUS_CHARGING;
-		} else
-			return POWER_SUPPLY_STATUS_DISCHARGING;
+		return POWER_SUPPLY_STATUS_NOT_CHARGING;
 	case CHARGER_AC:
 		if (battery->info.batt_is_full)
 			return POWER_SUPPLY_STATUS_FULL;
