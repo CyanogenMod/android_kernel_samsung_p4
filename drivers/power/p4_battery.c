@@ -69,6 +69,7 @@ struct battery_info {
 	s32 batt_vol;		/* Battery voltage from ADC */
 	s32 batt_temp;		/* Battery Temperature (C) from ADC */
 	s32 batt_current;	/* Battery current from ADC */
+	s32 force_usb_charging;
 	u32 level;		/* formula */
 	u32 charging_source;	/* 0: no cable, 1:usb, 2:AC */
 	u32 charging_enabled;	/* 0: Disable, 1: Enable */
@@ -432,7 +433,8 @@ static int p3_get_bat_level(struct power_supply *bat_ps)
 	if (battery->info.charging_enabled &&  /* Charging is enabled */
 		!battery->info.batt_is_recharging &&  /* Not Recharging */
 		(battery->info.charging_source == CHARGER_AC ||
-		(battery->info.charging_source == CHARGER_USB)) &&
+		(battery->info.charging_source == CHARGER_USB &&
+		battery->info.force_usb_charging)) &&
 		!battery->is_first_check &&  /* Skip first check */
 		(fg_vfsoc>70 && (fg_current>20 && fg_current<250) &&
 		(avg_current>20 && avg_current<260))) {
@@ -451,7 +453,8 @@ static int p3_get_bat_level(struct power_supply *bat_ps)
 		battery->full_check_flag = 0;
 
 	if ((battery->info.charging_source == CHARGER_AC ||
-	   (battery->info.charging_source == CHARGER_USB)) &&
+	   (battery->info.charging_source == CHARGER_USB &&
+	    battery->info.force_usb_charging)) &&
 		battery->info.batt_improper_ta == 0) {
 		if (is_over_abs_time(battery)) {
 			/* fg_soc = 100; */
@@ -527,7 +530,7 @@ __end__:
 		battery->is_first_check = false;
 
 	if (battery->info.batt_is_full &&
-		(battery->info.charging_source != CHARGER_USB))
+		(battery->info.charging_source != CHARGER_USB || battery->info.force_usb_charging))
 		fg_soc = 100;
 #if 0
 	else {
@@ -601,7 +604,10 @@ static void p3_set_chg_en(struct battery_data *battery, int enable)
 			} else if (battery->current_cable_status ==
 				CHARGER_USB) {
 				pr_info("USB charger!!");
-				p3_set_charging(battery, 1);
+				if (battery->info.force_usb_charging)
+					p3_set_charging(battery, 1);
+				else
+					p3_set_charging(battery, 2);
 				gpio_set_value(charger_enable_line, 0);
 			} else {
 				pr_info("else type charger!!");
@@ -746,13 +752,17 @@ static int p3_bat_get_charging_status(struct battery_data *battery)
 	switch (battery->info.charging_source) {
 	case CHARGER_BATTERY:
 	case CHARGER_USB:
-		if (battery->current_cable_status != CHARGER_BATTERY) {
-			if (battery->info.batt_is_full || battery->info.level == 100)
-				return POWER_SUPPLY_STATUS_FULL;
-			else if (!battery->info.batt_is_full || battery->info.level != 100)
-				return POWER_SUPPLY_STATUS_CHARGING;
-		} else
-			return POWER_SUPPLY_STATUS_DISCHARGING;
+		if (battery->info.force_usb_charging) {
+			if (battery->current_cable_status != CHARGER_BATTERY) {
+				if (battery->info.batt_is_full || battery->info.level == 100)
+					return POWER_SUPPLY_STATUS_FULL;
+				else if (!battery->info.batt_is_full || battery->info.level != 100)
+					return POWER_SUPPLY_STATUS_CHARGING;
+				} else
+					return POWER_SUPPLY_STATUS_DISCHARGING;
+				} else {
+					return POWER_SUPPLY_STATUS_DISCHARGING;
+				}
 	case CHARGER_AC:
 		if (battery->info.batt_is_full)
 			return POWER_SUPPLY_STATUS_FULL;
@@ -948,6 +958,10 @@ static ssize_t p3_bat_show_property(struct device *dev,
 		i += scnprintf(buf + i, PAGE_SIZE - i, "%d\n",
 		get_fuelgauge_value(FG_CURRENT_AVG));
 		break;
+	case FORCE_USB_CHARGING:
+		i += scnprintf(buf + i, PAGE_SIZE - i, "%d\n",
+		test_batterydata->info.force_usb_charging);
+		break;
 	case BATT_CHARGING_SOURCE:
 		i += scnprintf(buf + i, PAGE_SIZE - i, "%d\n",
 		test_batterydata->info.charging_source);
@@ -1007,6 +1021,16 @@ static ssize_t p3_bat_store(struct device *dev,
 	const ptrdiff_t off = attr - p3_battery_attrs;
 
 	switch (off) {
+	case FORCE_USB_CHARGING:
+		if (sscanf(buf, "%d\n", &x) == 1) {
+			if (x == 1)
+				test_batterydata->info.force_usb_charging = true;
+			else
+				test_batterydata->info.force_usb_charging = false;
+			ret = count;
+			p3_bat_status_update(&test_batterydata->psy_battery);
+		}
+		break;
 	case BATT_RESET_SOC:
 		if (sscanf(buf, "%d\n", &x) == 1) {
 			if (x == 1) {
@@ -1641,7 +1665,8 @@ static int __devinit p3_bat_probe(struct platform_device *pdev)
 
 	/* before enable fullcharge interrupt, check fullcharge */
 	if ((battery->info.charging_source == CHARGER_AC ||
-	   (battery->info.charging_source == CHARGER_USB))
+	   (battery->info.charging_source == CHARGER_USB &&
+            battery->info.force_usb_charging))
 		&& battery->info.charging_enabled
 		&& gpio_get_value(pdata->charger.fullcharge_line) == 1)
 		p3_cable_charging(battery);
