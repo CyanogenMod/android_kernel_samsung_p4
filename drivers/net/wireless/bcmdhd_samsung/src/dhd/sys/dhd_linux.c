@@ -497,7 +497,7 @@ module_param(dhd_pktgen_len, uint, 0);
 /* Version string to report */
 #ifdef DHD_DEBUG
 #ifndef SRCBASE
-#define SRCBASE        "drivers/net/wireless/bcmdhd"
+#define SRCBASE        "drivers/net/wireless/bcmdhd_samsung"
 #endif
 #define DHD_COMPILED "\nCompiled in " SRCBASE
 #else
