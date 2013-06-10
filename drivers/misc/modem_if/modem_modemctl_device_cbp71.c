@@ -148,6 +148,20 @@ static int cbp71_boot_off(struct modem_ctl *mc)
 	return 0;
 }
 
+static int cbp71_force_crash_exit(struct modem_ctl *mc)
+{
+	struct link_device *ld = get_current_link(mc->iod);
+	struct dpram_link_device *dpld = to_dpram_link_device(ld);
+
+	mif_err("force_crash_exit\n");
+	mif_err("<%s>\n", mc->bootd->name);
+
+	dpld->dpctl->send_intr(INT_CMD(INT_CMD_ERR_DISPLAY));
+	mc->iod->modem_state_changed(mc->iod, STATE_CRASH_EXIT);
+
+	return 0;
+}
+
 static irqreturn_t phone_active_irq_handler(int irq, void *_mc)
 {
 	int phone_reset = 0;
@@ -190,6 +204,7 @@ static void cbp71_get_ops(struct modem_ctl *mc)
 	mc->ops.modem_reset = cbp71_reset;
 	mc->ops.modem_boot_on = cbp71_boot_on;
 	mc->ops.modem_boot_off = cbp71_boot_off;
+	mc->ops.modem_force_crash_exit = cbp71_force_crash_exit;
 }
 
 int cbp71_init_modemctl_device(struct modem_ctl *mc,

@@ -1292,6 +1292,7 @@ static int vnet_xmit(struct sk_buff *skb, struct net_device *ndev)
 	struct io_device *iod = vnet->iod;
 	struct link_device *ld = get_current_link(iod);
 	struct raw_hdr hd;
+	unsigned long tx_bytes = skb->len;
 
 	/* When use `handover' with Network Bridge,
 	 * user -> TCP/IP(kernel) -> bridge device -> TCP/IP(kernel) -> this.
@@ -1339,7 +1340,7 @@ static int vnet_xmit(struct sk_buff *skb, struct net_device *ndev)
 	}
 
 	ndev->stats.tx_packets++;
-	ndev->stats.tx_bytes += skb->len;
+	ndev->stats.tx_bytes += tx_bytes;
 
 	return NETDEV_TX_OK;
 }

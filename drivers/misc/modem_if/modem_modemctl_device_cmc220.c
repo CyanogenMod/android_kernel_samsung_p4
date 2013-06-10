@@ -169,6 +169,7 @@ static int cmc220_dump_reset(struct modem_ctl *mc)
 
 	msleep(300);
 
+	mc->phone_state = STATE_BOOTING;
 	return 0;
 }
 
@@ -184,10 +185,12 @@ static int cmc220_reset(struct modem_ctl *mc)
 	if (cmc220_on(mc))
 		return -ENXIO;
 */
+	gpio_set_value(mc->gpio_host_active, 1);
 	gpio_set_value(mc->gpio_cp_reset, 0);
 	msleep(100);
 	gpio_set_value(mc->gpio_cp_reset, 1);
 	msleep(100);
+	mc->phone_state = STATE_BOOTING;
 	return 0;
 }
 
