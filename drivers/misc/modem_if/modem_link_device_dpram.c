@@ -1278,7 +1278,7 @@ static int dpram_download
 		header.curframe = curframe;
 		header.len = plen;
 
-#ifdef CONFIG_ARCH_TEGRA
+#if defined(CONFIG_ARCH_TEGRA) && !defined(CONFIG_MACH_SAMSUNG_P4LTE)
 		_memcpy(dest, &header, sizeof(header));
 #else
 		memcpy(dest, &header, sizeof(header));
