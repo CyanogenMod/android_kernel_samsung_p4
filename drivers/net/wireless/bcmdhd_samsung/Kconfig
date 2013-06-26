@@ -14,7 +14,7 @@ config BCM4330
 config BCMDHD_FW_PATH
 	depends on (BCM4330 || BCM4334)
 	string "Firmware path"
-	default "/system/etc/wifi/bcm4330_sta.bin"
+	default "/system/etc/wifi/bcmdhd_sta.bin"
 	---help---
 	  Path to the firmware file.
 
