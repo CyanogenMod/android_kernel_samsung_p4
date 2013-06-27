@@ -33,6 +33,9 @@
 #include "modem_link_pm_usb.h"
 
 #define URB_COUNT	4
+#if defined(CONFIG_MACH_SAMSUNG_P4LTE)
+static usb_modem_state;
+#endif
 extern int lte_airplain_mode;
 static int wakelock_held;
 
@@ -767,7 +770,12 @@ static int __devinit if_usb_probe(struct usb_interface *intf,
 	SET_HOST_ACTIVE(usb_ld->pdata, 1);
 	usb_ld->host_wake_timeout_flag = 0;
 
+#if defined(CONFIG_MACH_SAMSUNG_P4LTE)
+	if (gpio_get_value(usb_ld->pdata->gpio_phone_active) 
+		&& usb_modem_state) {
+#else
 	if (gpio_get_value(usb_ld->pdata->gpio_phone_active)) {
+#endif
 		struct link_pm_data *pm_data = usb_ld->link_pm_data;
 		int delay = usb_ld->link_pm_data->autosuspend_delay_ms ?:
 				DEFAULT_AUTOSUSPEND_DELAY_MS;
@@ -805,8 +813,14 @@ static int __devinit if_usb_probe(struct usb_interface *intf,
 		mif_debug("hub active complete\n");
 
 		usb_change_modem_state(usb_ld, STATE_ONLINE);
+#if defined(CONFIG_MACH_SAMSUNG_P4LTE)
+		usb_modem_state = 0;
+#endif
 	} else {
 		usb_change_modem_state(usb_ld, STATE_LOADER_DONE);
+#if defined(CONFIG_MACH_SAMSUNG_P4LTE)
+		usb_modem_state = 1;
+#endif
 	}
 
 	return 0;
