@@ -834,6 +834,18 @@ out:
 	return err;
 }
 
+#if defined(CONFIG_MACH_SAMSUNG_P4LTE)
+void change_modem_state(struct usb_link_device *usb_ld, enum modem_state state)
+{
+	usb_change_modem_state(usb_ld, state);
+
+	if (state == STATE_BOOTING)
+		usb_modem_state = 0; /* Reset usb_modem_state varible */
+
+	return 0;
+}
+#endif
+
 int usb_make_resume(struct usb_link_device *usb_ld)
 {
 	struct device *dev = &usb_ld->usbdev->dev;

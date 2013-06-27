@@ -244,6 +244,10 @@ static long link_pm_ioctl(struct file *file, unsigned int cmd,
 			mif_err("Block autosuspend failed\n");
 			err = -ENODEV;
 		}
+#if defined(CONFIG_MACH_SAMSUNG_P4LTE)
+		/* Change modem state to STATE_BOOTING */
+		change_modem_state(usb_ld, STATE_BOOTING);
+#endif
 		break;
 	case IOCTL_LINK_ENABLE_AUTOSUSPEND: /* Enable autosuspend */
 		mif_info("autosuspend enabled by `%s(%d)'\n",
