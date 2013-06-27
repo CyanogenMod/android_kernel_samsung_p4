@@ -131,5 +131,8 @@ do {								\
 
 int usb_make_resume(struct usb_link_device *usb_ld);
 irqreturn_t usb_resume_irq(int irq, void *data);
+#if defined(CONFIG_MACH_SAMSUNG_P4LTE)
+void change_modem_state(struct usb_link_device *, enum modem_state);
+#endif
 
 #endif
