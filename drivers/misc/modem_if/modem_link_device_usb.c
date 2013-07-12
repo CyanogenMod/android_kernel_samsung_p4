@@ -645,10 +645,8 @@ static void if_usb_disconnect(struct usb_interface *intf)
 		/*wake_unlock(&usb_ld->susplock);*/
 		usb_put_dev(usbdev);
 		usb_ld->usbdev = NULL;
-#if !defined(CONFIG_MACH_SAMSUNG_P4LTE)
 		schedule_delayed_work(&usb_ld->wait_enumeration,
 				msecs_to_jiffies(40000));
-#endif
 	}
 }
 
