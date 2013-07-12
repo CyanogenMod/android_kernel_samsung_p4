@@ -519,7 +519,11 @@ static void wait_enumeration_work(struct work_struct *work)
 
 	if (usb_ld->if_usb_connected == 0) {
 		mif_err("USB disconnected and not enumerated for long time\n");
+#if defined(CONFIG_MACH_SAMSUNG_P4LTE)
+		usb_change_modem_state(usb_ld, STATE_CRASH_EXIT);
+#else
 		usb_change_modem_state(usb_ld, STATE_CRASH_RESET);
+#endif
 	}
 }
 
