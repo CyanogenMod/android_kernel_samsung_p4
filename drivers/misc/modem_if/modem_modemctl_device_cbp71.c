@@ -148,6 +148,7 @@ static int cbp71_boot_off(struct modem_ctl *mc)
 	return 0;
 }
 
+#if !defined(CONFIG_MACH_SAMSUNG_P4LTE)
 static int cbp71_force_crash_exit(struct modem_ctl *mc)
 {
 	struct link_device *ld = get_current_link(mc->iod);
@@ -161,6 +162,7 @@ static int cbp71_force_crash_exit(struct modem_ctl *mc)
 
 	return 0;
 }
+#endif
 
 static irqreturn_t phone_active_irq_handler(int irq, void *_mc)
 {
@@ -204,7 +206,9 @@ static void cbp71_get_ops(struct modem_ctl *mc)
 	mc->ops.modem_reset = cbp71_reset;
 	mc->ops.modem_boot_on = cbp71_boot_on;
 	mc->ops.modem_boot_off = cbp71_boot_off;
+#if !defined(CONFIG_MACH_SAMSUNG_P4LTE)
 	mc->ops.modem_force_crash_exit = cbp71_force_crash_exit;
+#endif
 }
 
 int cbp71_init_modemctl_device(struct modem_ctl *mc,
