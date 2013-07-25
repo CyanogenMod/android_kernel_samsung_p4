@@ -23,7 +23,6 @@
 #include "nvhost_acm.h"
 #include "nvhost_job.h"
 #include "nvhost_hwctx.h"
-#include <trace/events/nvhost.h>
 #include <linux/slab.h>
 
 #include "host1x_syncpt.h"
@@ -118,8 +117,6 @@ static void submit_ctxsave(struct nvhost_job *job, void *ctxsave_waiter,
 		ctxsave_waiter = NULL;
 		WARN(err, "Failed to set ctx save interrupt");
 	}
-
-	trace_nvhost_channel_context_save(ch->dev->name, cur_ctx);
 }
 
 static void submit_ctxrestore(struct nvhost_job *job)
@@ -147,8 +144,6 @@ static void submit_ctxrestore(struct nvhost_job *job)
 		0,
 		nvhost_opcode_gather(ctx->restore_size),
 		ctx->restore_phys);
-
-	trace_nvhost_channel_context_restore(ch->dev->name, &ctx->hwctx);
 }
 
 void submit_nullkickoff(struct nvhost_job *job, int user_syncpt_incrs)
@@ -289,9 +284,6 @@ int host1x_channel_submit(struct nvhost_job *job)
 
 	/* end CDMA submit & stash pinned hMems into sync queue */
 	nvhost_cdma_end(&ch->cdma, job);
-
-	trace_nvhost_channel_submitted(ch->dev->name,
-			prev_max, syncval);
 
 	/* schedule a submit complete interrupt */
 	err = nvhost_intr_add_action(&nvhost_get_host(ch->dev)->intr,

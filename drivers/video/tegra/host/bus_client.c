@@ -28,8 +28,6 @@
 #include <linux/clk.h>
 #include <linux/hrtimer.h>
 
-#include <trace/events/nvhost.h>
-
 #include <linux/io.h>
 #include <linux/string.h>
 
@@ -94,8 +92,6 @@ static int nvhost_channelrelease(struct inode *inode, struct file *filp)
 {
 	struct nvhost_channel_userctx *priv = filp->private_data;
 
-	trace_nvhost_channel_release(priv->ch->dev->name);
-
 	filp->private_data = NULL;
 
 	nvhost_module_remove_client(priv->ch->dev, priv);
@@ -121,7 +117,6 @@ static int nvhost_channelopen(struct inode *inode, struct file *filp)
 	ch = nvhost_getchannel(ch);
 	if (!ch)
 		return -ENOMEM;
-	trace_nvhost_channel_open(ch->dev->name);
 
 	priv = kzalloc(sizeof(*priv), GFP_KERNEL);
 	if (!priv) {
@@ -223,9 +218,6 @@ static ssize_t nvhost_channelwrite(struct file *filp, const char __user *buf,
 			err = set_submit(priv);
 			if (err)
 				break;
-			trace_nvhost_channel_write_submit(chname,
-			  count, hdr->num_cmdbufs, hdr->num_relocs,
-			  hdr->syncpt_id, hdr->syncpt_incrs);
 		} else if (hdr->num_cmdbufs) {
 			struct nvhost_cmdbuf cmdbuf;
 			consumed = sizeof(cmdbuf);
@@ -235,8 +227,6 @@ static ssize_t nvhost_channelwrite(struct file *filp, const char __user *buf,
 				err = -EFAULT;
 				break;
 			}
-			trace_nvhost_channel_write_cmdbuf(chname,
-				cmdbuf.mem, cmdbuf.words, cmdbuf.offset);
 			nvhost_job_add_gather(job,
 				cmdbuf.mem, cmdbuf.words, cmdbuf.offset);
 			hdr->num_cmdbufs--;
@@ -249,7 +239,6 @@ static ssize_t nvhost_channelwrite(struct file *filp, const char __user *buf,
 				err = -EFAULT;
 				break;
 			}
-			trace_nvhost_channel_write_reloc(chname);
 			job->num_pins++;
 			hdr->num_relocs--;
 		} else if (hdr->num_waitchks) {
@@ -265,9 +254,6 @@ static ssize_t nvhost_channelwrite(struct file *filp, const char __user *buf,
 				err = -EFAULT;
 				break;
 			}
-			trace_nvhost_channel_write_waitchks(
-			  chname, numwaitchks,
-			  hdr->waitchk_mask);
 			job->num_waitchk += numwaitchks;
 			hdr->num_waitchks -= numwaitchks;
 		} else if (priv->num_relocshifts) {
@@ -307,8 +293,6 @@ static int nvhost_ioctl_channel_flush(
 {
 	struct device *device = &ctx->ch->dev->dev;
 	int err;
-
-	trace_nvhost_ioctl_channel_flush(ctx->ch->dev->name);
 
 	if (!ctx->job ||
 	    ctx->hdr.num_relocs ||
@@ -403,11 +387,6 @@ static long nvhost_channelctl(struct file *filp,
 		}
 		memcpy(&priv->hdr, hdr, sizeof(struct nvhost_submit_hdr_ext));
 		err = set_submit(priv);
-		trace_nvhost_ioctl_channel_submit(priv->ch->dev->name,
-			priv->hdr.submit_version,
-			priv->hdr.num_cmdbufs, priv->hdr.num_relocs,
-			priv->hdr.num_waitchks,
-			priv->hdr.syncpt_id, priv->hdr.syncpt_incrs);
 		break;
 	}
 	case NVHOST_IOCTL_CHANNEL_GET_SYNCPOINTS:

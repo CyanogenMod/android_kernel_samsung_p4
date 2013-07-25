@@ -28,7 +28,6 @@
 
 #include <linux/slab.h>
 #include <linux/kfifo.h>
-#include <trace/events/nvhost.h>
 #include <linux/interrupt.h>
 
 /*
@@ -92,9 +91,6 @@ unsigned int nvhost_cdma_wait_locked(struct nvhost_cdma *cdma,
 		unsigned int space = cdma_status_locked(cdma, event);
 		if (space)
 			return space;
-
-		trace_nvhost_wait_cdma(cdma_to_channel(cdma)->dev->name,
-				event);
 
 		/* If somebody has managed to already start waiting, yield */
 		if (cdma->event != CDMA_EVENT_NONE) {
@@ -406,48 +402,12 @@ int nvhost_cdma_begin(struct nvhost_cdma *cdma, struct nvhost_job *job)
 	return 0;
 }
 
-static void trace_write_gather(struct nvhost_cdma *cdma,
-		struct nvmap_handle *handle,
-		u32 offset, u32 words)
-{
-	struct nvmap_handle_ref ref;
-	void *mem = NULL;
-
-	if (nvhost_debug_trace_cmdbuf) {
-		ref.handle = handle;
-		mem = nvmap_mmap(&ref);
-		if (IS_ERR_OR_NULL(mem))
-			mem = NULL;
-	};
-
-	if (mem) {
-		u32 i;
-		/*
-		 * Write in batches of 128 as there seems to be a limit
-		 * of how much you can output to ftrace at once.
-		 */
-		for (i = 0; i < words; i += TRACE_MAX_LENGTH) {
-			trace_nvhost_cdma_push_gather(
-				cdma_to_channel(cdma)->dev->name,
-				(u32)handle,
-				min(words - i, TRACE_MAX_LENGTH),
-				offset + i * sizeof(u32),
-				mem);
-		}
-		nvmap_munmap(&ref, mem);
-	}
-}
-
 /**
  * Push two words into a push buffer slot
  * Blocks as necessary if the push buffer is full.
  */
 void nvhost_cdma_push(struct nvhost_cdma *cdma, u32 op1, u32 op2)
 {
-	if (nvhost_debug_trace_cmdbuf)
-		trace_nvhost_cdma_push(cdma_to_channel(cdma)->dev->name,
-				op1, op2);
-
 	nvhost_cdma_push_gather(cdma, NULL, NULL, 0, op1, op2);
 }
 
@@ -464,9 +424,6 @@ void nvhost_cdma_push_gather(struct nvhost_cdma *cdma,
 	struct push_buffer *pb = &cdma->push_buffer;
 	BUG_ON(!cdma_pb_op(cdma).push_to);
 	BUG_ON(!cdma_op(cdma).kick);
-
-	if (handle)
-		trace_write_gather(cdma, handle, offset, op1 & 0xffff);
 
 	if (slots_free == 0) {
 		cdma_op(cdma).kick(cdma);

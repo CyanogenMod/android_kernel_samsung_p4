@@ -24,7 +24,6 @@
 #include <linux/interrupt.h>
 #include <linux/slab.h>
 #include <linux/irq.h>
-#include <trace/events/nvhost.h>
 #include "nvhost_channel.h"
 #include "nvhost_hwctx.h"
 
@@ -127,10 +126,6 @@ static void action_submit_complete(struct nvhost_waitlist *waiter)
 {
 	struct nvhost_channel *channel = waiter->data;
 	int nr_completed = waiter->count;
-
-	/*  Add nr_completed to trace */
-	trace_nvhost_channel_submit_complete(channel->dev->name,
-			nr_completed, waiter->thresh);
 
 	nvhost_cdma_update(&channel->cdma);
 	nvhost_module_idle_mult(channel->dev, nr_completed);

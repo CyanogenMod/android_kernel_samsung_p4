@@ -26,7 +26,6 @@
 #include "nvhost_intr.h"
 #include "chip_support.h"
 
-#define TRACE_MAX_LENGTH	128U
 #define IFACE_NAME		"nvhost"
 
 struct nvhost_hwctx;
