@@ -28,7 +28,6 @@
 #include "nvhost_channel.h"
 
 pid_t nvhost_debug_null_kickoff_pid;
-unsigned int nvhost_debug_trace_cmdbuf;
 
 pid_t nvhost_debug_force_timeout_pid;
 u32 nvhost_debug_force_timeout_val;
@@ -141,8 +140,6 @@ void nvhost_debug_init(struct nvhost_master *master)
 
 	debugfs_create_u32("null_kickoff_pid", S_IRUGO|S_IWUSR, de,
 			&nvhost_debug_null_kickoff_pid);
-	debugfs_create_u32("trace_cmdbuf", S_IRUGO|S_IWUSR, de,
-			&nvhost_debug_trace_cmdbuf);
 
 	if (master->op.debug.debug_init)
 		master->op.debug.debug_init(de);
